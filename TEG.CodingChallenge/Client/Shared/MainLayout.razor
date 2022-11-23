@@ -1,0 +1,26 @@
+﻿@inherits LayoutComponentBase
+
+@inject NavigationManager NavigationManager;
+
+<MudThemeProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="0">
+        <MudButton StartIcon="@Icons.Material.Filled.Home" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => GoHome())">TEG Events</MudButton>
+
+
+    </MudAppBar>
+    <MudMainContent>
+        <MudContainer MaxWidth="MaxWidth.Large" Class="pt-6">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+
+    void GoHome()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+}

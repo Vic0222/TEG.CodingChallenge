@@ -1,0 +1,70 @@
+﻿@page "/event/{Id:int}"
+
+@using TEG.CodingChallenge.Shared.Dtos
+
+@inject HttpClient Http;
+
+
+
+@if (isLoadingDetails)
+{
+    <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+}
+else if (EventDetails == null)
+{
+    <PageTitle>Not found</PageTitle>
+    <MudText Typo="Typo.h3" GutterBottom="true">Event Details not found.</MudText>
+}else
+{
+    <PageTitle>@EventDetails.Name</PageTitle>
+
+
+    <MudCard>
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">@EventDetails.Name </MudText>
+                <MudText>@EventDetails.StartDate.Date.ToLongDateString()</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText>@EventDetails.Description</MudText>
+            <br />
+            <br />
+            <MudText> This event will be held on <strong>@getAddress(EventDetails)</strong>.</MudText>
+            <MudText> The venue  only has a capacity of @EventDetails.Capacity people so please get your tickets early.</MudText>
+        </MudCardContent>
+    </MudCard>
+}
+
+
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    public EventDetailsDto? EventDetails { get; set; }
+
+    private bool isLoadingDetails = false;
+
+    protected  override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoadingDetails = true;
+            EventDetails = await Http.GetFromJsonAsync<EventDetailsDto>($"api/Events/{Id}");
+        }
+        finally
+        {
+            isLoadingDetails = false;
+        }
+
+    }
+
+    private string getAddress(EventDetailsDto eventDetails){
+        if (!string.IsNullOrEmpty(eventDetails.Location))
+        {
+            return $"{eventDetails.VenueName}, {eventDetails.Location}";
+        }
+        return eventDetails.VenueName;
+    }
+}

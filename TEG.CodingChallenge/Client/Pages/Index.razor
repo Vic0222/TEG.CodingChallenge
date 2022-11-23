@@ -1,0 +1,109 @@
+﻿@page "/"
+@using TEG.CodingChallenge.Shared
+@using TEG.CodingChallenge.Shared.Dtos
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<PageTitle>Events</PageTitle>
+
+<MudText Typo="Typo.h3" GutterBottom="true">Events</MudText>
+
+<MudTable Items="eventSummaries" Hover="true" Elevation="0" Loading="@_eventsIsLoading">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Events</MudText>
+        <MudSpacer />
+
+        <MudSelect T="VenueSummaryDto" Label="Venue" Value="selectedVenue" ValueChanged="@((v) => OnVenueChanged(v))" AnchorOrigin="Origin.BottomCenter">
+            @foreach (var venue in venues)
+            {
+                <MudSelectItem Value="@venue">@venue.Name</MudSelectItem>
+            }
+        </MudSelect>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Event Name</MudTh>
+        <MudTh>Starting On</MudTh>
+        <MudTh>Action</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Name">@context.Name</MudTd>
+        <MudTd DataLabel="Date">@context.StartDate.Date.ToShortDateString()</MudTd>
+        <MudTd DataLabel="Action">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(e => goToEventDetails(context.Id))">Details</MudButton>
+        </MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager PageSizeOptions="new int[]{50, 100}" />
+    </PagerContent>
+</MudTable>
+
+
+@code {
+    private EventSummaryDto[] eventSummaries = Array.Empty<EventSummaryDto>();
+    private VenueSummaryDto[] venues = Array.Empty<VenueSummaryDto>();
+
+
+    private VenueSummaryDto? selectedVenue;
+
+    private bool _eventsIsLoading = false;
+    private bool _venuesIsLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await loadVenues();
+        await loadEvents();
+
+    }
+
+    private void goToEventDetails(int eventId)
+    {
+        NavigationManager.NavigateTo($"event/{eventId}");
+    }
+
+    public async Task OnVenueChanged(VenueSummaryDto venueSummary)
+    {
+        selectedVenue = venueSummary;
+        await loadEvents();
+    }
+
+    private async Task loadVenues()
+    {
+        _venuesIsLoading = false;
+        StateHasChanged();
+        try
+        {
+            venues = await Http.GetFromJsonAsync<VenueSummaryDto[]>("api/Venues");
+            selectedVenue = venues.FirstOrDefault();
+        }
+        catch (Exception)
+        {
+            //show error
+            throw;
+        }
+        finally
+        {
+            _venuesIsLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task loadEvents()
+    {
+        _eventsIsLoading = true;
+        StateHasChanged();
+        try
+        {
+            eventSummaries = await Http.GetFromJsonAsync<EventSummaryDto[]>($"api/Venues/{selectedVenue?.Id ?? 0}/Events");
+        }
+        catch
+        {
+            //show error
+            throw;
+        }
+        finally
+        {
+            _eventsIsLoading = false;
+            StateHasChanged();
+        }
+    }
+}
