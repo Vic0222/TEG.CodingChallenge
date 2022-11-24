@@ -6,6 +6,7 @@ using Polly.Retry;
 using Serilog;
 using Serilog.Events;
 using System.Net.Http.Headers;
+using System.Reflection;
 using TEG.CodingChallenge.Application.Configs;
 using TEG.CodingChallenge.Application.Contracts.Services;
 using TEG.CodingChallenge.Application.Services;
@@ -49,7 +50,11 @@ builder.Services
         svc.GetRequiredService<IHttpClientFactory>().CreateClient("Default"));
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options => {
+
+    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, xmlFilename));
+});
 
 
 // Add services to the container.
